@@ -83,7 +83,7 @@ class BDTB:
             #构建UR
             url = pageURL
 
-#            print  url
+            print "getPage " + url
             #request = urllib2.Request(url)
             #response = urllib2.urlopen(request)
             req = urllib2.Request(url)
@@ -150,7 +150,6 @@ class BDTB:
         #获取帖子页数的正则表达式
 #     <a id="pager_next" href="6310647.html" target="_top" class="next">下一章</a> <a rel="nofollow" href="javascript:;" onclick="addBookMark(6306674,11447,'第1116章 马马虎虎');">加入书签</a>
 
-
         pattern = re.compile('<a id="pager_next" href="(.*?)" target="_top" class="next">.*?</a>',re.S)
         result = re.search(pattern,page)
         if result:
@@ -177,29 +176,20 @@ class BDTB:
             self.floor += 1
 
     def writeTitle(self, title):
-            floorLine = "\n" + "\t\t\t" + title + "\n"
+        floorLine = "\n" + "\t\t\t" + title + "\n"
 #            #print u"title line",floorLine
 #            self.file.write(floorLine.encode('utf-8'))
-            #self.file.write(self.title)
+        #self.file.write(self.title)
 #            print "lfor ",floorLine
-            self.file.write(floorLine.encode('utf-8'))
+        self.file.write(floorLine.encode('utf-8'))
 #            self.floor += 1
-
-
-    def start(self):
-        #indexPage = self.getPage(self.pageURL)
-        #self.pageURL = self.getNextPage(indexPage)
-        #title = self.getTitle(indexPage)
-        #self.setFileTitle(title)
-        if self.pageURL == None:
-            print "URL已失效，请重试"
-            return
+    def getBook(self,all):
         try:
 #            6295492http://www.xs.la/11_11447/6766460.html
 #                    http://www.xs.la/11_11447/6310647.html
 #                    http://www.xs.la/11_11447/6312478.html
 
-            all = "5460985.html"
+
             print "该小说共有" + str(floorTag) + "章"
             for i in range(0,int(floorTag)):
                 a = (i)/float(floorTag)*100
@@ -239,7 +229,92 @@ class BDTB:
         finally:
             print "写入任务完成"
 
-baseURL = "http://www.xs.la/9_9143/"
+    def getBookPage(self,page):
+        #匹配所有楼层的内容
+        pattern = re.compile('<a href="(.*?)">.*?<img',re.S)
+#        print page
+        items = re.findall(pattern,page)
+        # contents = []
+#         for item in items:
+# #            print item
+#             content = self.tool.replace(item)
+        print "item ",items
+#             contents.append(content)
+        return items
+
+    def  getBookFirstPage(self,page):
+
+        pattern = re.compile('<dd>.*?<a.*?href="(.*?)">',re.S)
+        page = re.findall(pattern,page)
+        # contents = []
+        for item in page:
+            print " item " + item
+#             content = self.tool.replace(item)
+
+#             contents.append(content)
+            return item
+
+    def getFirstBookTitlePage(self,bookUrl):
+        try:
+        
+            url = self.baseURL+ bookUrl
+            print "getFirstBookTitlePageurl ",url
+            page = self.getPage(url)
+            firstUrl = self.getBookFirstPage(page)
+            print "firstUrl ",firstUrl
+            return firstUrl
+        except Exception as e:
+            raise
+        else:
+            pass
+        finally:
+            pass
+        return
+
+    def start(self):
+        #indexPage = self.getPage(self.pageURL)
+        #self.pageURL = self.getNextPage(indexPage)
+        #title = self.getTitle(indexPage)
+        #self.setFileTitle(title)
+        if self.pageURL == None:
+            print "URL已失效，请重试"
+            return
+
+        try:
+#            6295492http://www.xs.la/11_11447/6766460.html
+#                    http://www.xs.la/11_11447/6310647.html
+#                    http://www.xs.la/11_11447/6312478.html
+
+            all = "/newclass/1/1.html"
+            
+            pageURL = self.baseURL+ all
+            print "pageurl ", pageURL
+            
+            page = self.getPage(pageURL)
+            items = self.getBookPage(page)
+            n = 1;
+            for item in items:    
+                n=n+1
+                if n==2:
+                    continue
+                bookUrl = self.getFirstBookTitlePage(item)
+                print " over " + bookUrl
+               
+                bookMainUrl = bookUrl[1:11]
+                detailUrl = bookUrl[12:]
+                self.baseURL = self.baseURL+ "/"+bookMainUrl+"/";
+                print "bookMainUrl " + bookMainUrl + '\n' + " detailUrl " + detailUrl
+
+                self.getBook(detailUrl)
+            print " over "
+
+        except IOError,e:
+            print "写入异常，原因" + e.message
+        finally:
+            print "写入任务完成"
+       # self.getBook()
+
+baseURL = "http://www.xs.la"
 #http://www.xs.la/11_11447/6295437.html
 #http://www.xs.la/11_11447/6295438.html
 
