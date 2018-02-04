@@ -9,7 +9,7 @@
 import sys
 reload(sys)
 sys.setdefaultencoding('utf8')
-
+import time, threading
 import urllib
 #import urllib.request
 import urllib2
@@ -140,6 +140,8 @@ class BDTB:
         self.title = None
         self.pageCount = 1
         self.pageURL = "1.html"
+        self.path = "./book/"
+
     #传入页码，获取该页帖子的代码
     def getPage(self,pageURL):
         try:
@@ -181,7 +183,7 @@ class BDTB:
     #获取下一页
     def getNextPage(self,page):
         #获取帖子页数的正则表达式
-        pattern = re.compile('<a class="article-page-next" href="(.*?)">.*?</a>',re.S)
+        pattern = re.compile('<a id="pager_next" href="(.*?)">.*?</a>',re.S)
         result = re.search(pattern,page)
         if result:
             return result.group(1).strip()
@@ -225,11 +227,11 @@ class BDTB:
     def setFileTitle(self,title):
         if title is not None:
             #写文件 追加
-            self.file = open(title + ".txt","a+")
+            self.file = open(self.path + title + ".txt","a+")
             self.title = title
             #print u"title",self.defaultTitle
         else:
-            self.file = open(self.defaultTitle + ".txt","a+")
+            self.file = open(self.path + self.defaultTitle + ".txt","a+")
                     
     def writeData(self,contents):
         for item in contents:
@@ -270,6 +272,9 @@ class BDTB:
                 if self.pageURL == 'index.html':
                     print "end"
                     return;
+                if all == None:
+                    print "over book"
+                    return
                 title = self.getTitle(page)
 
                 print "title url" + title
@@ -292,7 +297,7 @@ class BDTB:
         except IOError,e:
             print "写入异常，原因" + e.message
         finally:
-            print "写入任务完成"
+            print "写入任务完成1"
 
     def getBookPage(self,page):
         #匹配所有楼层的内容
@@ -358,8 +363,10 @@ class BDTB:
             page = self.getPage(pageURL)
             #没本书URL
             items = self.getBookPage(page)
+
             n = 1;
-            for item in items:    
+            for item in items:
+                self.baseURL = "http://www.xs.la"    
                 n=n+1
                 if n==2:
                     continue
@@ -379,7 +386,7 @@ class BDTB:
         except IOError,e:
             print "写入异常，原因" + e.message
         finally:
-            print "写入任务完成"
+            print "写入任务完成2"
        # self.getBook()
 
 baseURL = "http://www.xs.la"
